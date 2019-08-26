@@ -1,8 +1,4 @@
-package kr1.database;
 
-import avayacdr.core.AvayaCDRData;
-import avayacdr.core.Util;
-import avayacdr.http.HTTPRequest;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -61,10 +57,10 @@ public class DBServer implements DBConnectionListener {
         return isExist;
     }
 
-    private synchronized void sendQuery(HTTPRequest httpRequest, String query, boolean update) {
+    private synchronized void sendQuery( String query, boolean update) {
 
         try {
-            new DBConnection(this, connection,httpRequest, query,!update);
+            new DBConnection(this, connection, query,!update);
         } catch (SQLException e) {
             System.out.println("DBServer Query Exeption: " + e);
         }
@@ -73,7 +69,7 @@ public class DBServer implements DBConnectionListener {
 
 
 
-    public void CreateTable(){
+    public void CreateTable(String nameTable){
 
         //Не запускаем общие методы без полной инициализации класса
         if (!status) return;
@@ -120,7 +116,7 @@ public class DBServer implements DBConnectionListener {
         return  result;
     }
 
-    public void AppendTableString(AvayaCDRData baseCDRData)
+    public void AppendTableString(DBData baseCDRData)
     {
         //Не запускаем общие методы без полной инициализации класса
         if (!status) return;
@@ -152,7 +148,7 @@ public class DBServer implements DBConnectionListener {
         sendQuery(null,query,true);
     }
 
-    public void FindDateTimeTable(HTTPRequest httpRequest,LocalDateTime BeginTime, LocalDateTime EndTime, String Key, String Value,int opKey)
+    public void FindDateTimeTable(LocalDateTime BeginTime, LocalDateTime EndTime, String Key, String Value,int opKey)
     {
         //Не запускаем общие методы без полной инициализации класса
         if (!status) return;
@@ -183,7 +179,7 @@ public class DBServer implements DBConnectionListener {
                 + " WHERE (Date BETWEEN '" +             BeginDate +"' AND '" + EndDate +"')"
                 + " AND (" + Key +" "+operandBegin+" '" + locValue +operandEnd+"')";
 
-        sendQuery(httpRequest,query,false);
+        sendQuery(query,false);
 
     }
 
@@ -204,43 +200,37 @@ public class DBServer implements DBConnectionListener {
 
     }
     @Override
-    public synchronized void onResultSet(DBConnection dbConnection,HTTPRequest httpRequest, ResultSet resultSet, Statement statement) {
+    public synchronized void onResultSet(DBConnection dbConnection, ResultSet resultSet, Statement statement) {
         try {
 
-            ArrayList <AvayaCDRData> listCDRData = new ArrayList<>();
+            ArrayList <DBData> listDBData = new ArrayList<>();
 
             while (resultSet.next()) {
 
                 if (resultSet.getString("CallingNumber").trim().equals("null")) continue;
                 if (resultSet.getString("CalledNumber").trim().equals("null")) continue;
 
-                AvayaCDRData baseCDRData = new AvayaCDRData();
+                DBData baseData = new DBData();
 
-                baseCDRData.name = nameTable;
-                baseCDRData.value = resultSet.getString("Value");
-                baseCDRData.date = resultSet.getTimestamp("Date").toLocalDateTime();
-                baseCDRData.calledNumber = resultSet.getString("CalledNumber");
-                baseCDRData.callingNumber = resultSet.getString("CallingNumber");
-                baseCDRData.duration = resultSet.getInt("Duration");
-                baseCDRData.cond_code = resultSet.getString("CondCode");
-                baseCDRData.code_dial = resultSet.getString("CodeDial");
-                baseCDRData.code_used = resultSet.getString("CodeUsed");
-                baseCDRData.in_trk_code = resultSet.getString("InTrkCode");
-                baseCDRData.acct_code = resultSet.getString("AcctCode");
-                baseCDRData.auth_code = resultSet.getString("AuthCode");
-                baseCDRData.frl = resultSet.getString("Frl");
-                baseCDRData.ixc_code = resultSet.getString("IxcCode");
-                baseCDRData.in_crt_id = resultSet.getString("InCrtId");
-                baseCDRData.out_crt_id = resultSet.getString("OutCrtId");
-                baseCDRData.feat_flag = resultSet.getString("FeatFlag");
-                baseCDRData.code_return = resultSet.getString("CodeReturn");
-                baseCDRData.line_feed = resultSet.getString("LineFeed");
+                baseData.cond_code = resultSet.getString("CondCode");
+                baseData.code_dial = resultSet.getString("CodeDial");
+                baseData.code_used = resultSet.getString("CodeUsed");
+                baseData.in_trk_code = resultSet.getString("InTrkCode");
+                baseData.acct_code = resultSet.getString("AcctCode");
+                baseData.auth_code = resultSet.getString("AuthCode");
+                baseData.frl = resultSet.getString("Frl");
+                baseData.ixc_code = resultSet.getString("IxcCode");
+                baseData.in_crt_id = resultSet.getString("InCrtId");
+                baseData.out_crt_id = resultSet.getString("OutCrtId");
+                baseData.feat_flag = resultSet.getString("FeatFlag");
+                baseData.code_return = resultSet.getString("CodeReturn");
+                baseData.line_feed = resultSet.getString("LineFeed");
 
-                listCDRData.add(baseCDRData);
+                listDBData.add(baseData);
 
             };
 
-            eventListener.onRecivedCDR(this,httpRequest, listCDRData);
+            eventListener.onRecivedCDR(this, listDBData);
 
 
             resultSet.close(); resultSet = null;
