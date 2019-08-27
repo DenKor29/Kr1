@@ -12,19 +12,22 @@ public class DBServer implements DBConnectionListener {
 
     private Connection connection;
     private DBServerListener eventListener;
-    private String nameDB;
+    private String nameDB="station";
     private String nameTable="route";
     private String nameMainTable="schedule";
     private boolean status;
 
 
-    public DBServer(DBServerListener event,String url, String urlParam,String nameDB,String user, String password) {
+    public DBServer(DBServerListener event) {
 
         this.nameDB = nameDB;
         this.status = false;
         this.eventListener = event;
 
-
+        String user = "root";
+        String password = "15122000";
+        String url = "jdbc:mysql://127.0.0.1:3306/";
+        String urlParam = "?serverTimezone=GMT%2B3";
 
 
         try {
@@ -40,15 +43,15 @@ public class DBServer implements DBConnectionListener {
             System.out.println("DBServer Fault Start..." );
             System.out.println("DBServer Exeption: " + e);
         }
+
         status = true;
     }
 
-    protected final LocalDateTime SetFieldTime(String value)
+    protected final LocalDateTime GetFieldTime(String value)
     {
-        String DATATIMEFORMAT = "ddMMyy HHmm";
         LocalDateTime dateTime = LocalDateTime.now();
         try{
-             dateTime = LocalDateTime.parse(value, DateTimeFormatter.ofPattern(DATATIMEFORMAT));
+             dateTime = LocalDateTime.parse(value, DateTimeFormatter.ofPattern(SQLDATATIMEFORMAT));
         }
         catch(DateTimeParseException e){
             System.out.println("DateTime Exeption: " + e);
@@ -69,14 +72,15 @@ public class DBServer implements DBConnectionListener {
         return isExist;
     }
 
-    private synchronized void sendQuery( String query, boolean update) {
+    private synchronized DBConnection sendQuery( String query, boolean update) {
 
         try {
-            new DBConnection(this, connection, query,!update);
+            return new DBConnection(this, connection, query,!update);
+
         } catch (SQLException e) {
             System.out.println("DBServer Query Exeption: " + e);
         }
-
+        return null;
     }
 
 
@@ -139,16 +143,60 @@ public class DBServer implements DBConnectionListener {
         if (!status) return;
 
         String BeginTime = LocalDateTimeToString(baseData.BeginTime);
-        int Route = 1;
 
 
         String query = "INSERT INTO " + nameMainTable +" (Route,CountBilets,BeginTime)  \n" +
-                "VALUES ('"+Route+"',\n" +
+                "VALUES ('"+baseData.Route+"',\n" +
                 "'" + baseData.CountBilets +"'," +
                 "'" + baseData.BeginTime +"');";
 
         sendQuery(query,true);
     }
+
+    public void ShowMainTableString()
+    {
+        //Не запускаем общие методы без полной инициализации класса
+        if (!status) return;
+
+        String query = "SELECT schedule.Id,schedule.BeginTime,schedule.CountBilets,route.PunktA,route.PunktB,route.L,route.TimeL,route.Automobile,route.Count FROM schedule,route"+
+                "WHERE (schedule.Route = route.Id)";
+
+        DBConnection connection = sendQuery(query,false);
+
+        if (connection == null) return;
+
+
+        try {
+
+            ResultSet resultSet = connection.getResultSet();
+             while (resultSet.next()) {
+
+                System.out.println("\n======================================================================");
+
+                System.out.println("Время: " + GetFieldTime(resultSet.getString("BeginTime")));
+                System.out.println("Automobile: " + resultSet.getString("Automobile"));
+                System.out.println("PunktA: " + resultSet.getString("PunktA"));
+                System.out.println("PunktB: " + resultSet.getString("PunktB"));
+                System.out.println("L: " + Util.GetIntFromString(resultSet.getString("L"),0));
+                System.out.println("TimeL: " + Util.GetIntFromString(resultSet.getString("TimeL"),0));
+                System.out.println("CountBilets: " + Util.GetIntFromString(resultSet.getString("CountBilets"),0));
+                System.out.println("Count: " + Util.GetIntFromString(resultSet.getString("Count"),0));
+                System.out.println("======================================================================");
+
+                break;
+            }
+            ;
+        }
+        catch (SQLException e)
+        {
+
+            System.out.println("DBServer Exeption: " + e);
+        };
+
+        return ;
+
+    }
+
 
     public void AppendTableString(DBData baseData)
     {
@@ -205,6 +253,25 @@ public class DBServer implements DBConnectionListener {
 
     }
 
+    public DBConnection FindChildRouteTable(DBData dbData)
+    {
+        //Не запускаем общие методы без полной инициализации класса
+        if (!status) return null;
+
+
+        String query = "SELECT Id,PunktA,PunktB,L,TimeL,Automobile,Count FROM " + nameTable
+                + " WHERE (PunktA = '" +  dbData.PunktA +"')"
+                + " AND   (PunktB = '" +  dbData.PunktB +"')"
+                + " AND   (L = '"      +  dbData.L +"')"
+                + " AND   (TimeL = '"  +  dbData.TimeL +"')"
+                + " AND   (Automobile = '" +  dbData.Automobile +"')"
+                + " AND   (Count = '"  +  dbData.Count +"')";
+
+
+        return sendQuery(query,false);
+
+    }
+
     @Override
     public synchronized void onConnectionReady(DBConnection dbConnection) {
        System.out.println("DBConnection  Ready.");
@@ -221,7 +288,7 @@ public class DBServer implements DBConnectionListener {
         System.out.println("DBServer Exeption: " + e);
 
     }
-    @Override
+
     public synchronized void onResultSet(DBConnection dbConnection, ResultSet resultSet, Statement statement) {
         try {
 
@@ -233,7 +300,7 @@ public class DBServer implements DBConnectionListener {
 
                 DBData baseData = new DBData();
 
-                baseData.BeginTime = SetFieldTime(resultSet.getString("BeginTime"));
+                baseData.BeginTime = GetFieldTime(resultSet.getString("BeginTime"));
                 baseData.Automobile = resultSet.getString("Automobile");
                 baseData.CountBilets = Util.GetIntFromString(resultSet.getString("CountBilets"),0);
                 baseData.L = Util.GetIntFromString(resultSet.getString("L"),0);
@@ -246,7 +313,7 @@ public class DBServer implements DBConnectionListener {
 
             };
 
-            eventListener.onRecivedCDR(this, listDBData);
+
 
 
             resultSet.close(); resultSet = null;

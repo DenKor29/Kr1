@@ -6,5 +6,5 @@ public interface DBConnectionListener {
     void onConnectionReady(DBConnection dbConnection);
     void onDisconnection(DBConnection dbConnection);
     void onException(DBConnection dbConnection, Exception e);
-    void onResultSet(DBConnection dbConnection, ResultSet resultSet, Statement statement);
+
 }

@@ -8,34 +8,41 @@ public class DBConnection {
 
     private final Connection connection;
     private final DBConnectionListener eventListener;
-    private final Thread rxThread;
     private final String sql ;
+
+    public ResultSet getResultSet() {
+        return resultSet;
+    }
+
+    private ResultSet resultSet;
+
+    public Statement getStatement() {
+        return statement;
+    }
+
+    private Statement statement;
+
 
     public DBConnection(DBConnectionListener event, Connection conn, String query, boolean result) throws SQLException {
         this.eventListener = event;
         this.connection = conn;
         this.sql = query;
-
-        rxThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+        System.out.println("Query = " + query );
 
                 try {
 
-                    //System.out.println("DBConnection create statement:"+sql);
-                    Statement statement = connection.createStatement();
+                    statement = connection.createStatement();
                      if (result) {
-                         ResultSet resultSet  = statement.executeQuery(sql);
-                         eventListener.onResultSet(DBConnection.this,resultSet,statement);
-                     } else  statement.executeUpdate(sql);
+                         resultSet  = statement.executeQuery(sql);
+
+                     } else  {
+                         resultSet = null;
+                         statement.executeUpdate(sql);
+                     }
 
                 } catch (SQLException se) {
                     eventListener.onException(DBConnection.this,se);
                 }
-            }
-        });
-
-        rxThread.start();
 
     }
     @Override
