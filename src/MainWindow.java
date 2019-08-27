@@ -55,6 +55,9 @@ public class MainWindow implements DBServerListener  {
 
             //Запишем расписание маршрутов
             dbServer.AppendMainTableString(dbData);
+
+            //Выведем расписание
+            dbServer.ShowMainTableString();
         }
 
 

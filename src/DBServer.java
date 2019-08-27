@@ -24,8 +24,8 @@ public class DBServer implements DBConnectionListener {
         this.status = false;
         this.eventListener = event;
 
-        String user = "root";
-        String password = "15122000";
+        String user = "user";
+        String password = "";
         String url = "jdbc:mysql://127.0.0.1:3306/";
         String urlParam = "?serverTimezone=GMT%2B3";
 
@@ -158,8 +158,8 @@ public class DBServer implements DBConnectionListener {
         //Не запускаем общие методы без полной инициализации класса
         if (!status) return;
 
-        String query = "SELECT schedule.Id,schedule.BeginTime,schedule.CountBilets,route.PunktA,route.PunktB,route.L,route.TimeL,route.Automobile,route.Count FROM schedule,route"+
-                "WHERE (schedule.Route = route.Id)";
+        String query = "SELECT schedule.Id,schedule.Route,schedule.BeginTime,schedule.CountBilets,route.Id,route.PunktA,route.PunktB,route.L,route.TimeL,route.Automobile,route.Count FROM schedule,route "+
+                " WHERE (schedule.Route = route.Id)";
 
         DBConnection connection = sendQuery(query,false);
 
@@ -173,17 +173,18 @@ public class DBServer implements DBConnectionListener {
 
                 System.out.println("\n======================================================================");
 
-                System.out.println("Время: " + GetFieldTime(resultSet.getString("BeginTime")));
-                System.out.println("Automobile: " + resultSet.getString("Automobile"));
-                System.out.println("PunktA: " + resultSet.getString("PunktA"));
-                System.out.println("PunktB: " + resultSet.getString("PunktB"));
-                System.out.println("L: " + Util.GetIntFromString(resultSet.getString("L"),0));
-                System.out.println("TimeL: " + Util.GetIntFromString(resultSet.getString("TimeL"),0));
-                System.out.println("CountBilets: " + Util.GetIntFromString(resultSet.getString("CountBilets"),0));
-                System.out.println("Count: " + Util.GetIntFromString(resultSet.getString("Count"),0));
+                 System.out.println("Id: " + Util.GetIntFromString(resultSet.getString("schedule.Id"),0));
+                 System.out.println("Время: " + GetFieldTime(resultSet.getString("schedule.BeginTime")));
+                System.out.println("Automobile: " + resultSet.getString("Route.Automobile"));
+                System.out.println("PunktA: " + resultSet.getString("Route.PunktA"));
+                System.out.println("PunktB: " + resultSet.getString("Route.PunktB"));
+                System.out.println("L: " + Util.GetIntFromString(resultSet.getString("Route.L"),0));
+                System.out.println("TimeL: " + Util.GetIntFromString(resultSet.getString("Route.TimeL"),0));
+                System.out.println("CountBilets: " + Util.GetIntFromString(resultSet.getString("schedule.CountBilets"),0));
+                System.out.println("Count: " + Util.GetIntFromString(resultSet.getString("Route.Count"),0));
                 System.out.println("======================================================================");
 
-                break;
+
             }
             ;
         }
