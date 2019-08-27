@@ -24,8 +24,8 @@ public class DBServer implements DBConnectionListener {
         this.status = false;
         this.eventListener = event;
 
-        String user = "root";
-        String password = "15122000";
+        String user = "user";
+        String password = "";
         String url = "jdbc:mysql://127.0.0.1:3306/";
         String urlParam = "?serverTimezone=GMT%2B3";
 
