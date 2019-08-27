@@ -13,7 +13,8 @@ public class DBServer implements DBConnectionListener {
     private Connection connection;
     private DBServerListener eventListener;
     private String nameDB;
-    private String nameTable;
+    private String nameTable="route";
+    private String nameMainTable="schedule";
     private boolean status;
 
 
@@ -31,7 +32,10 @@ public class DBServer implements DBConnectionListener {
             connection = DriverManager.getConnection(url + nameDB + urlParam, user, password);
             System.out.println("DBServer Start..." );
             if (isExistTable(connection,nameTable)) {
-                System.out.println("DBServer Table:"+NameTable+" is exist." );
+                System.out.println("DBServer Table:"+nameTable+" is exist." );
+            } else CreateTable();
+            if (isExistTable(connection,nameMainTable)) {
+                System.out.println("DBServer Table:"+nameMainTable+" is exist." );
             } else CreateTable();
         } catch (SQLException e) {
             System.out.println("DBServer Fault Start..." );
@@ -40,9 +44,6 @@ public class DBServer implements DBConnectionListener {
         status = true;
     }
 
-    public String getNameTable() {
-        return nameTable;
-    }
 
     private boolean isExistTable(Connection connection, String name){
 
@@ -69,7 +70,39 @@ public class DBServer implements DBConnectionListener {
 
 
 
-    public void CreateTable(String nameTable){
+    public void CreateMainTable(){
+
+        //Не запускаем общие методы без полной инициализации класса
+        if (!status) return;
+
+        System.out.println("DBServer Create Table " + nameMainTable + " ...");
+        String query = "CREATE TABLE IF NOT EXISTS "+ nameMainTable + " (\n" +
+                "    Id int(11) NOT NULL AUTO_INCREMENT,\n" +
+                "    Value varchar(255),\n" +
+                "    Date datatime,\n" +
+                "    CallingNumber varchar(15),\n" +
+                "    CalledNumber varchar(18), \n" +
+                "    Duration int(4), \n" +
+                "    CondCode varchar(4), \n" +
+                "    CodeUsed varchar(4), \n" +
+                "    CodeDial varchar(4), \n" +
+                "    InTrkCode varchar(4), \n" +
+                "    AcctCode varchar(5), \n" +
+                "    AuthCode varchar(5), \n" +
+                "    Frl varchar(4), \n" +
+                "    IxcCode varchar(4), \n" +
+                "    InCrtId varchar(4), \n" +
+                "    OutCrtId varchar(4), \n" +
+                "    FeatFlag varchar(4), \n" +
+                "    CodeReturn varchar(4), \n" +
+                "    LineFeed varchar(4), \n" +
+                "    PRIMARY KEY (Id));";
+        sendQuery(query,true);
+
+
+    }
+
+    public void CreateTable(){
 
         //Не запускаем общие методы без полной инициализации класса
         if (!status) return;
@@ -96,7 +129,7 @@ public class DBServer implements DBConnectionListener {
                 "    CodeReturn varchar(4), \n" +
                 "    LineFeed varchar(4), \n" +
                 "    PRIMARY KEY (Id));";
-        sendQuery(null,query,true);
+        sendQuery(query,true);
 
 
     }
