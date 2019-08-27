@@ -18,10 +18,9 @@ public class DBServer implements DBConnectionListener {
     private boolean status;
 
 
-    public DBServer(DBServerListener event,String url, String urlParam,String nameDB,String NameTable,String user, String password) {
+    public DBServer(DBServerListener event,String url, String urlParam,String nameDB,String user, String password) {
 
         this.nameDB = nameDB;
-        this.nameTable = NameTable;
         this.status = false;
         this.eventListener = event;
 
@@ -78,24 +77,9 @@ public class DBServer implements DBConnectionListener {
         System.out.println("DBServer Create Table " + nameMainTable + " ...");
         String query = "CREATE TABLE IF NOT EXISTS "+ nameMainTable + " (\n" +
                 "    Id int(11) NOT NULL AUTO_INCREMENT,\n" +
-                "    Value varchar(255),\n" +
-                "    Date datatime,\n" +
-                "    CallingNumber varchar(15),\n" +
-                "    CalledNumber varchar(18), \n" +
-                "    Duration int(4), \n" +
-                "    CondCode varchar(4), \n" +
-                "    CodeUsed varchar(4), \n" +
-                "    CodeDial varchar(4), \n" +
-                "    InTrkCode varchar(4), \n" +
-                "    AcctCode varchar(5), \n" +
-                "    AuthCode varchar(5), \n" +
-                "    Frl varchar(4), \n" +
-                "    IxcCode varchar(4), \n" +
-                "    InCrtId varchar(4), \n" +
-                "    OutCrtId varchar(4), \n" +
-                "    FeatFlag varchar(4), \n" +
-                "    CodeReturn varchar(4), \n" +
-                "    LineFeed varchar(4), \n" +
+                "    Route int(11), \n" +
+                "    CountBilets int(11), \n" +
+                "    BeginTime datatime,\n" +
                 "    PRIMARY KEY (Id));";
         sendQuery(query,true);
 
@@ -110,24 +94,12 @@ public class DBServer implements DBConnectionListener {
         System.out.println("DBServer Create Table " + nameTable + " ...");
         String query = "CREATE TABLE IF NOT EXISTS "+ nameTable + " (\n" +
                 "    Id int(11) NOT NULL AUTO_INCREMENT,\n" +
-                "    Value varchar(255),\n" +
-                "    Date datatime,\n" +
-                "    CallingNumber varchar(15),\n" +
-                "    CalledNumber varchar(18), \n" +
-                "    Duration int(4), \n" +
-                "    CondCode varchar(4), \n" +
-                "    CodeUsed varchar(4), \n" +
-                "    CodeDial varchar(4), \n" +
-                "    InTrkCode varchar(4), \n" +
-                "    AcctCode varchar(5), \n" +
-                "    AuthCode varchar(5), \n" +
-                "    Frl varchar(4), \n" +
-                "    IxcCode varchar(4), \n" +
-                "    InCrtId varchar(4), \n" +
-                "    OutCrtId varchar(4), \n" +
-                "    FeatFlag varchar(4), \n" +
-                "    CodeReturn varchar(4), \n" +
-                "    LineFeed varchar(4), \n" +
+                "    PunktA varchar(255),\n" +
+                "    PunktB varchar(255), \n" +
+                "    L int(11), \n" +
+                "    TimeL int(11), \n" +
+                "    Automobile varchar(255), \n" +
+                "    Count int(11), \n" +
                 "    PRIMARY KEY (Id));";
         sendQuery(query,true);
 
@@ -149,36 +121,41 @@ public class DBServer implements DBConnectionListener {
         return  result;
     }
 
-    public void AppendTableString(DBData baseCDRData)
+    public void AppendMainTableString(DBData baseData)
     {
         //Не запускаем общие методы без полной инициализации класса
         if (!status) return;
 
-        String BeginDate = LocalDateTimeToString(baseCDRData.date);
+        String BeginTime = LocalDateTimeToString(baseData.BeginTime);
+        int Route = 1;
+
+
+        String query = "INSERT INTO " + nameMainTable +" (Route,CountBilets,BeginTime)  \n" +
+                "VALUES ('"+Route+"',\n" +
+                "'" + baseData.CountBilets +"'," +
+                "'" + baseData.BeginTime +"');";
+
+        sendQuery(query,true);
+    }
+
+    public void AppendTableString(DBData baseData)
+    {
+        //Не запускаем общие методы без полной инициализации класса
+        if (!status) return;
+
+        //String BeginDate = LocalDateTimeToString(baseData.BeginTime);
 
 
 
-        String query = "INSERT INTO " + nameTable +" (Value,Date,Duration,CondCode,CodeDial,CodeUsed,InTrkCode,CallingNumber,CalledNumber,AcctCode,AuthCode,Frl,IxcCode,InCrtId,OutCrtId,FeatFlag,CodeReturn,LineFeed)  \n" +
-                "VALUES ('"+baseCDRData.value+"',\n" +
-                "'" + BeginDate +"'," +
-                "'" + baseCDRData.duration +"'," +
-                "'" + baseCDRData.cond_code +"'," +
-                "'" + baseCDRData.code_dial +"'," +
-                "'" + baseCDRData.code_used +"'," +
-                "'" + baseCDRData.in_trk_code +"'," +
-                "'" + baseCDRData.callingNumber +"'," +
-                "'" + baseCDRData.calledNumber +"'," +
-                "'" + baseCDRData.acct_code +"'," +
-                "'" + baseCDRData.auth_code +"'," +
-                "'" + baseCDRData.frl +"'," +
-                "'" + baseCDRData.ixc_code +"'," +
-                "'" + baseCDRData.in_crt_id +"'," +
-                "'" + baseCDRData.out_crt_id +"'," +
-                "'" + baseCDRData.feat_flag +"'," +
-                "'" + baseCDRData.code_return +"'," +
-                "'" + baseCDRData.line_feed +"');";
+        String query = "INSERT INTO " + nameTable +" (PunktA,PunktB,L,TimeL,Automobile,Count)  \n" +
+                "VALUES ('"+baseData.PunktA+"',\n" +
+                "'" + baseData.PunktB +"'," +
+                "'" + baseData.L +"'," +
+                "'" + baseData.TimeL +"'," +
+                "'" + baseData.Automobile +"'," +
+                "'" + baseData.Count +"');";
 
-        sendQuery(null,query,true);
+        sendQuery(query,true);
     }
 
     public void FindDateTimeTable(LocalDateTime BeginTime, LocalDateTime EndTime, String Key, String Value,int opKey)

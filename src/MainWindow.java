@@ -16,14 +16,13 @@ public class MainWindow implements DBServerListener  {
 
 
          String dbname = "station";
-         String nametable = "schedule";
          String user = "user";
          String password = "12345";
          String url = "jdbc:mysql://127.0.0.1:3506/";
          String urlParam = "?serverTimezone=GMT%2B3";
 
 
-        dbServer = new DBServer(this,url,urlParam,dbname,nametable,user,password);
+        dbServer = new DBServer(this,url,urlParam,dbname,user,password);
 
 
 
