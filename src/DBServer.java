@@ -43,6 +43,18 @@ public class DBServer implements DBConnectionListener {
         status = true;
     }
 
+    protected final LocalDateTime SetFieldTime(String value)
+    {
+        String DATATIMEFORMAT = "ddMMyy HHmm";
+        LocalDateTime dateTime = LocalDateTime.now();
+        try{
+             dateTime = LocalDateTime.parse(value, DateTimeFormatter.ofPattern(DATATIMEFORMAT));
+        }
+        catch(DateTimeParseException e){
+            System.out.println("DateTime Exeption: " + e);
+        }
+        return dateTime;
+    }
 
     private boolean isExistTable(Connection connection, String name){
 
@@ -217,24 +229,18 @@ public class DBServer implements DBConnectionListener {
 
             while (resultSet.next()) {
 
-                if (resultSet.getString("CallingNumber").trim().equals("null")) continue;
-                if (resultSet.getString("CalledNumber").trim().equals("null")) continue;
+                if (resultSet.getString("Id").trim().equals("null")) continue;
 
                 DBData baseData = new DBData();
 
-                baseData.cond_code = resultSet.getString("CondCode");
-                baseData.code_dial = resultSet.getString("CodeDial");
-                baseData.code_used = resultSet.getString("CodeUsed");
-                baseData.in_trk_code = resultSet.getString("InTrkCode");
-                baseData.acct_code = resultSet.getString("AcctCode");
-                baseData.auth_code = resultSet.getString("AuthCode");
-                baseData.frl = resultSet.getString("Frl");
-                baseData.ixc_code = resultSet.getString("IxcCode");
-                baseData.in_crt_id = resultSet.getString("InCrtId");
-                baseData.out_crt_id = resultSet.getString("OutCrtId");
-                baseData.feat_flag = resultSet.getString("FeatFlag");
-                baseData.code_return = resultSet.getString("CodeReturn");
-                baseData.line_feed = resultSet.getString("LineFeed");
+                baseData.BeginTime = SetFieldTime(resultSet.getString("BeginTime"));
+                baseData.Automobile = resultSet.getString("Automobile");
+                baseData.CountBilets = Util.GetIntFromString(resultSet.getString("CountBilets"),0);
+                baseData.L = Util.GetIntFromString(resultSet.getString("L"),0);
+                baseData.TimeL = Util.GetIntFromString(resultSet.getString("TimeL"),0);
+                baseData.PunktA = resultSet.getString("PunktA");
+                baseData.PunktB = resultSet.getString("PunktB");
+                baseData.Count = Util.GetIntFromString(resultSet.getString("Count"),0);
 
                 listDBData.add(baseData);
 

@@ -2,6 +2,7 @@ import java.time.LocalDateTime;
 
 public class DBData  {
 
+    public int Route;
     public int CountBilets;
     public LocalDateTime BeginTime;
     public String PunktA;
